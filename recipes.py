@@ -1,5 +1,4 @@
 class Ingredient:
-    """Отдельный продукт рецепта: название, количество и единица измерения."""
 
     def __init__(self, name, quantity, unit):
         self.name = name
@@ -30,7 +29,6 @@ class Ingredient:
 
 
 class Recipe:
-    """Рецепт блюда: название и набор ингредиентов."""
 
     def __init__(self, title, ingredients=None):
         self.title = title
@@ -65,7 +63,6 @@ class Recipe:
 
 
 class DietaryRecipe(Recipe):
-    """Рецепт с указанием диетической категории (веган, без глютена и т.д.)."""
 
     def __init__(self, title, diet_type, ingredients=None):
         super().__init__(title, ingredients)
@@ -77,3 +74,37 @@ class DietaryRecipe(Recipe):
 
     def __str__(self):
         return f"[{self.diet_type}] {super().__str__()}"
+
+
+class ShoppingList:
+
+    def __init__(self):
+        self._items = []
+
+    def add_recipe(self, recipe, portions):
+        if portions <= 0:
+            raise ValueError("Количество порций должно быть положительным")
+        scaled = recipe.scale(portions)
+        for ingredient in scaled.ingredients:
+            self._items.append((ingredient, recipe.title))
+
+    def remove_recipe(self, title):
+        self._items = [item for item in self._items if item[1] != title]
+
+    def get_list(self):
+        totals = {}
+        for ingredient, _ in self._items:
+            key = (ingredient.name, ingredient.unit)
+            if key in totals:
+                totals[key] += ingredient.quantity
+            else:
+                totals[key] = ingredient.quantity
+        result = [Ingredient(name, quantity, unit)
+                  for (name, unit), quantity in totals.items()]
+        result.sort(key=lambda ing: ing.name)
+        return result
+
+    def __add__(self, other):
+        combined = ShoppingList()
+        combined._items = self._items + other._items
+        return combined
